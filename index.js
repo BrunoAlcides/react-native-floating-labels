@@ -1,5 +1,5 @@
 'use strict';
-import React, {Component, PropTypes} from 'react';
+import React, { Component, PropTypes } from 'react';
 
 import {
   StyleSheet,
@@ -11,6 +11,8 @@ import {
   View,
   Platform
 } from 'react-native';
+
+import { omit } from 'lodash'
 
 var textPropTypes = Text.propTypes || View.propTypes
 var textInputPropTypes = TextInput.propTypes || textPropTypes
@@ -100,11 +102,13 @@ var FloatingLabel  = React.createClass({
   },
 
   _renderLabel () {
+    const { labelStyle = [] } = this.props
+
     return (
       <Animated.Text
-        ref='label'
+        ref={(label) => { this.label = label; }}
         numberOfLines={this.props.numberOfLines}
-        style={[this.state.labelStyle, styles.label, this.props.labelStyle]}
+        style={[this.state.labelStyle, styles.label, ...labelStyle]}
       >
         {this.props.children}
       </Animated.Text>
@@ -112,53 +116,31 @@ var FloatingLabel  = React.createClass({
   },
 
   render() {
-    var props = {
-        autoCapitalize: this.props.autoCapitalize,
-        autoCorrect: this.props.autoCorrect,
-        autoFocus: this.props.autoFocus,
-        bufferDelay: this.props.bufferDelay,
-        clearButtonMode: this.props.clearButtonMode,
-        clearTextOnFocus: this.props.clearTextOnFocus,
-        controlled: this.props.controlled,
-        editable: this.props.editable,
-        enablesReturnKeyAutomatically: this.props.enablesReturnKeyAutomatically,
-        keyboardType: this.props.keyboardType,
-        multiline: this.props.multiline,
-        numberOfLines: this.props.numberOfLines,
-        onBlur: this._onBlur,
-        onChange: this.props.onChange,
-        onChangeText: this.onChangeText,
-        onEndEditing: this.updateText,
-        onFocus: this._onFocus,
-        onSubmitEditing: this.props.onSubmitEditing,
-        password: this.props.secureTextEntry || this.props.password, // Compatibility
-        placeholder: this.props.placeholder,
-        secureTextEntry: this.props.secureTextEntry || this.props.password, // Compatibility
-        returnKeyType: this.props.returnKeyType,
-        selectTextOnFocus: this.props.selectTextOnFocus,
-        selectionState: this.props.selectionState,
-        style: [styles.input],
-        testID: this.props.testID,
-        value: this.state.text,
-        underlineColorAndroid: this.props.underlineColorAndroid, // android TextInput will show the default bottom border
-        onKeyPress: this.props.onKeyPress
-      },
-      elementStyles = [styles.element];
+    const {
+      inputStyle = [],
+      style = []
+    } = this.props
 
-    if (this.props.inputStyle) {
-      props.style.push(this.props.inputStyle);
+    const rest = omit(this.props, 'children')
+
+    const textInputProps = {
+      ...rest,
+      onBlur: this._onBlur,
+      onChangeText: this.onChangeText,
+      onEndEditing: this.updateText,
+      onFocus: this._onFocus,
+      style: [styles.input].concat(inputStyle),
+      value: this.state.text
     }
 
-    if (this.props.style) {
-      elementStyles.push(this.props.style);
-    }
+    const elementStyles = [styles.element].concat(style);
 
     return (
   		<View style={elementStyles}>
         {this._renderLabel()}
         <TextInput
-          ref={(r) => { this.input = r; }}
-          {...props}
+          ref={(input) => { this.input = input; }}
+          {...textInputProps}
         >
         </TextInput>
       </View>
